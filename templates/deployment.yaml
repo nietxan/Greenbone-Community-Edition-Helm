@@ -1,0 +1,306 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "openvas.fullname" . }}
+  namespace: {{ template "openvas.namespace" . }}
+  labels:
+    {{- include "openvas.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      {{- include "openvas.selectorLabels" . | nindent 6 }}
+  minReadySeconds: 10
+  progressDeadlineSeconds: 600
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "openvas.selectorLabels" . | nindent 8 }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{ if .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml .Values.topologySpreadConstraints | nindent 8 }}
+      {{- end }}
+      initContainers:
+        - name: pg-init
+          image: {{ .Values.psgvm.image.repository }}:{{ .Values.psgvm.image.tag }}
+          command: ["/bin/sh", "-c", "/init-scripts/init-postgres.sh"]
+          volumeMounts:
+            - name: psql-storage
+              mountPath: /mnt/postgresql
+            - name: init-scripts
+              mountPath: /init-scripts
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+
+        - name: notus-data
+          image: greenbone/notus-data
+          volumeMounts:
+            - name: shared-storage
+              mountPath: /mnt
+              subPath: notus-data
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+
+        - name: scap-data
+          image: greenbone/scap-data
+          volumeMounts:
+            - name: gvmd-storage
+              mountPath: /mnt
+              subPath: scap-data
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+
+        - name: cert-bund-data
+          image: greenbone/cert-bund-data
+          volumeMounts:
+            - name: gvmd-storage
+              mountPath: /mnt
+              subPath: cert-data
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+
+        - name: dfn-cert-data
+          image: greenbone/dfn-cert-data
+          volumeMounts:
+            - name: gvmd-storage
+              mountPath: /mnt
+              subPath: cert-data
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+
+        - name: data-objects
+          image: greenbone/data-objects
+          volumeMounts:
+            - name: gvmd-storage
+              mountPath: /mnt
+              subPath: data-objects/gvmd
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+
+        - name: report-formats
+          image: greenbone/report-formats
+          volumeMounts:
+            - name: gvmd-storage
+              mountPath: /mnt
+              subPath: data-objects/gvmd
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+
+        - name: gpg-data
+          image: greenbone/gpg-data
+          volumeMounts:
+            - name: openvas-storage
+              mountPath: /mnt
+              subPath: gnupg/gpg-data
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+
+        - name: vulnerability-tests
+          image: greenbone/vulnerability-tests
+          env:
+            - name: STORAGE_PATH
+              value: "/var/lib/openvas/22.04/vt-data/nasl"
+          volumeMounts:
+            - name: shared-storage
+              mountPath: /mnt
+              subPath: vt-data
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+
+        - name: configure-openvas
+          image: greenbone/openvas-scanner:stable
+          volumeMounts:
+            - name: openvas-storage
+              mountPath: /mnt
+            - name: shared-storage
+              mountPath: /var/log/openvas
+              subPath: openvas-log-data
+          command: ["/bin/sh", "-c", "printf \"table_driven_lsc = yes\nopenvasd_server = http://openvasd:80\n\" > /mnt/openvas.conf && sed \"s/127/{{ .Values.logLevel }}/\" /etc/openvas/openvas_log.conf | sed 's/gvm/openvas/' > /mnt/openvas_log.conf && chmod 644 /mnt/openvas.conf && chmod 644 /mnt/openvas_log.conf && touch /var/log/openvas/openvas.log && chmod 666 /var/log/openvas/openvas.log"]
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+
+      containers:
+        - name: redis-server
+          image: greenbone/redis-server
+          volumeMounts:
+            - name: shared-storage
+              mountPath: /run/redis
+              subPath: redis-socket
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+
+        - name: pg-gvm
+          image: {{ .Values.psgvm.image.repository }}:{{ .Values.psgvm.image.tag }}
+          volumeMounts:
+            - name: psql-storage
+              mountPath: /var/lib/postgresql
+            - name: shared-storage
+              mountPath: /var/run/postgresql
+              subPath: psql-socket
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+          lifecycle:
+            postStart:
+              exec:
+                command: ["/bin/sh", "-c", "chown -R postgres:postgres /var/lib/postgresql"]
+
+        - name: gvmd
+          image: greenbone/gvmd:stable
+          volumeMounts:
+            - name: gvmd-storage
+              mountPath: /var/lib/gvm
+            - name: shared-storage
+              mountPath: /var/lib/openvas/plugins
+              subPath: vt-data
+            - name: psql-storage
+              mountPath: /var/lib/postgresql
+            - name: gvmd-socket
+              mountPath: /run/gvmd
+            - name: shared-storage
+              mountPath: /run/ospd
+              subPath: ospd-openvas-socket
+            - name: shared-storage
+              mountPath: /var/run/postgresql
+              subPath: psql-socket
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+          lifecycle:
+            postStart:
+              exec:
+                command: ["/bin/sh", "-c", "chown -R gvmd:gvmd /run/gvmd; mkdir -p /var/lib/gvm/gvmd; chown -R gvmd:gvmd /var/lib/gvm"]
+
+        - name: gsa
+          image: greenbone/gsa:stable
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          volumeMounts:
+            - name: gvmd-socket
+              mountPath: /run/gvmd
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+
+        - name: openvas
+          image: greenbone/openvas-scanner:stable
+          volumeMounts:
+            - name: openvas-storage
+              mountPath: /etc/openvas
+            - name: shared-storage
+              mountPath: /var/log/openvas
+              subPath: openvas-log-data
+          command: ["/bin/sh", "-c", "cat /etc/openvas/openvas.conf && tail -f /var/log/openvas/openvas.log"]
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+
+        - name: openvasd
+          image: greenbone/openvas-scanner:stable
+          ports:
+            - containerPort: 81
+              protocol: TCP
+          env:
+            - name: OPENVASD_MODE
+              value: "service_notus"
+            - name: GNUPGHOME
+              value: "/etc/openvas/gnupg"
+            - name: LISTENING
+              value: "0.0.0.0:81"
+          volumeMounts:
+            - name: openvas-storage
+              mountPath: /etc/openvas
+            - name: shared-storage
+              mountPath: /var/log/openvas
+              subPath: openvas-log-data
+            - name: shared-storage
+              mountPath: /var/lib/notus
+              subPath: notus-data
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+
+        - name: ospd-openvas
+          image: greenbone/ospd-openvas:stable
+          securityContext:
+            capabilities:
+              add: ["NET_ADMIN", "NET_RAW"]
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+          command: ["ospd-openvas", "-f", "--config", "/etc/gvm/ospd-openvas.conf", "--notus-feed-dir", "/var/lib/notus/advisories", "-m", "666"]
+          volumeMounts:
+            - name: shared-storage
+              mountPath: /var/lib/openvas/plugins
+              subPath: vt-data
+            - name: shared-storage
+              mountPath: /var/lib/notus
+              subPath: notus-data
+            - name: shared-storage
+              mountPath: /run/ospd
+              subPath: ospd-openvas-socket
+            - name: shared-storage
+              mountPath: /run/redis
+              subPath: redis-socket
+            - name: openvas-storage
+              mountPath: /etc/openvas/
+            - name: shared-storage
+              mountPath: /var/log/openvas
+              subPath: openvas-log-data
+          {{- with .Values.ospdOpenvas.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
+        - name: gvm-tools
+          image: greenbone/gvm-tools
+          volumeMounts:
+            - name: gvmd-socket
+              mountPath: /run/gvmd
+            - name: shared-storage
+              mountPath: /run/ospd
+              subPath: ospd-openvas-socket
+          args:
+            - gosu gvm /bin/bash; while true; do sleep 600; done
+          command:
+            - sh
+            - '-c'
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+
+      volumes:
+        - name: shared-storage
+          persistentVolumeClaim:
+            claimName: shared-pvc
+        - name: gvmd-storage
+          persistentVolumeClaim:
+            claimName: gvmd-pvc
+        - name: openvas-storage
+          persistentVolumeClaim:
+            claimName: openvas-pvc
+        - name: psql-storage
+          persistentVolumeClaim:
+            claimName: psql-pvc
+        - name: init-scripts
+          configMap:
+            name: init-scripts-config
+            defaultMode: 0755
+        - name: gvmd-socket
+          emptyDir: {}
+
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

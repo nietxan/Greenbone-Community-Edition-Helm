@@ -1,0 +1,107 @@
+# Default values for openvas.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+hostname: openvas.example.com
+
+psgvm:
+  image:
+    repository: greenbone/pg-gvm
+    tag: stable
+
+#  4  Errors.
+#  8  Critical situation.
+# 16  Warnings.
+# 32  Messages.
+# 64  Information.
+#128  Debug.  (Lots of output.)
+logLevel: 16
+
+ospdOpenvas:
+  resources:
+    requests:
+      cpu: '3'
+      memory: 250Mi
+
+cert:
+  issuerRef:
+    group: certmanager.step.sm
+    kind: ClusterIssuer
+    name: default
+  duration: 730h
+  renewBefore: 72h
+
+ingress:
+  enabled: true
+  annotations:
+    "kubernetes.io/ingress.class": "traefik"
+    "traefik.ingress.kubernetes.io/router.entrypoints": "websecure"
+    "traefik.ingress.kubernetes.io/router.tls": "true"
+  hosts:
+    - host: openvas.example.com
+  tls:
+    - secretName: openvas-ingress-tls-pki
+      hosts:
+        - openvas.example.com
+
+fullnameOverride: ""
+nameOverride: ""
+namespaceOverride: ""
+
+persistence:
+  enabled: true
+  storageClass: "default"
+  accessMode: ReadWriteOnce
+  size: 25Gi
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: "openvas-serviceaccount"
+
+podAnnotations: {}
+
+podSecurityContext: 
+  runAsUser: 0
+
+securityContext:
+  fsGroup: 0
+  runAsUser: 0
+
+service:
+  type: ClusterIP
+
+
+
+readinessProbe:
+  # failureThreshold: 3
+  # httpGet:
+  #   path: /health
+  #   port: 80
+  #   scheme: HTTP
+  # initialDelaySeconds: 5
+  # periodSeconds: 2
+  # successThreshold: 2
+  # timeoutSeconds: 2
+
+livenessProbe:
+  # failureThreshold: 3
+  # httpGet:
+  #   path: /health
+  #   port: 80
+  #   scheme: HTTP
+  # initialDelaySeconds: 5
+  # periodSeconds: 2
+  # successThreshold: 1
+  # timeoutSeconds: 2
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+topologySpreadConstraints: []
