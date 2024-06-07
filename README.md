@@ -1,4 +1,4 @@
- # Helm chart for GVM deployment
+ # Helm chart for Greenbone Community Edition
 
  This helm chart is based off of this docker-compose file: https://greenbone.github.io/docs/latest/22.4/container/index.html#docker-compose-file
 
