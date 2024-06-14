@@ -172,6 +172,25 @@ spec:
             - name: shared-storage
               mountPath: /var/run/postgresql
               subPath: psql-socket
+          {{- with .Values.gvmd }}
+          {{- if .existingSecret }}
+          envFrom:
+          - secretRef:
+              name: {{ .existingSecret }}
+              optional: false
+          {{- end }}
+
+          {{- if .env }}
+          env:
+            {{- range $key, $value := .env }}
+            {{- if $value }}
+            - name: "{{ $key }}"
+              value: |-
+                {{ $value }}
+            {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- end }}
           securityContext:
             {{- toYaml .Values.podSecurityContext | nindent 12 }}
           lifecycle:
@@ -274,8 +293,7 @@ spec:
 
       volumes:
         - name: shared-storage
-          persistentVolumeClaim:
-            claimName: shared-pvc
+          emptyDir: {}
         - name: gvmd-storage
           persistentVolumeClaim:
             claimName: gvmd-pvc

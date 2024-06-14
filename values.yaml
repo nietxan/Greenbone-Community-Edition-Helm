@@ -22,6 +22,18 @@ ospdOpenvas:
       cpu: '3'
       memory: 250Mi
 
+gvmd:
+# https://github.com/greenbone/docs/blob/main/src/22.4/container/workflows.md?plain=1#L336
+#  env:
+#    MTA_HOST: "smtp.gmail.com"
+#    MTA_PORT: 587
+#    MTA_TLS: "on"
+#    MTA_STARTTLS: "on"
+#    MTA_AUTH: "on"
+#    MTA_USER: "<username>"
+#    MTA_FROM: "<username>@gmail.com"
+#  existingSecret: "gvmd-secrets"
+
 cert:
   issuerRef:
     group: certmanager.step.sm
