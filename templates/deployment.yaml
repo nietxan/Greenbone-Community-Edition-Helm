@@ -33,6 +33,7 @@ spec:
       initContainers:
         - name: pg-init
           image: {{ .Values.psgvm.image.repository }}:{{ .Values.psgvm.image.tag }}
+          imagePullPolicy: Always
           command: ["/bin/sh", "-c", "/init-scripts/init-postgres.sh"]
           volumeMounts:
             - name: psql-storage
@@ -44,6 +45,7 @@ spec:
 
         - name: notus-data
           image: greenbone/notus-data
+          imagePullPolicy: Always
           volumeMounts:
             - name: shared-storage
               mountPath: /mnt
@@ -53,6 +55,7 @@ spec:
 
         - name: scap-data
           image: greenbone/scap-data
+          imagePullPolicy: Always
           volumeMounts:
             - name: gvmd-storage
               mountPath: /mnt
@@ -62,6 +65,7 @@ spec:
 
         - name: cert-bund-data
           image: greenbone/cert-bund-data
+          imagePullPolicy: Always
           volumeMounts:
             - name: gvmd-storage
               mountPath: /mnt
@@ -71,6 +75,7 @@ spec:
 
         - name: dfn-cert-data
           image: greenbone/dfn-cert-data
+          imagePullPolicy: Always
           volumeMounts:
             - name: gvmd-storage
               mountPath: /mnt
@@ -80,6 +85,7 @@ spec:
 
         - name: data-objects
           image: greenbone/data-objects
+          imagePullPolicy: Always
           volumeMounts:
             - name: gvmd-storage
               mountPath: /mnt
@@ -89,6 +95,7 @@ spec:
 
         - name: report-formats
           image: greenbone/report-formats
+          imagePullPolicy: Always
           volumeMounts:
             - name: gvmd-storage
               mountPath: /mnt
@@ -98,6 +105,7 @@ spec:
 
         - name: gpg-data
           image: greenbone/gpg-data
+          imagePullPolicy: Always
           volumeMounts:
             - name: openvas-storage
               mountPath: /mnt
@@ -107,6 +115,7 @@ spec:
 
         - name: vulnerability-tests
           image: greenbone/vulnerability-tests
+          imagePullPolicy: Always
           env:
             - name: STORAGE_PATH
               value: "/var/lib/openvas/22.04/vt-data/nasl"
@@ -119,6 +128,7 @@ spec:
 
         - name: configure-openvas
           image: greenbone/openvas-scanner:stable
+          imagePullPolicy: Always
           volumeMounts:
             - name: openvas-storage
               mountPath: /mnt
@@ -132,6 +142,7 @@ spec:
       containers:
         - name: redis-server
           image: greenbone/redis-server
+          imagePullPolicy: Always
           volumeMounts:
             - name: shared-storage
               mountPath: /run/redis
@@ -141,6 +152,7 @@ spec:
 
         - name: pg-gvm
           image: {{ .Values.psgvm.image.repository }}:{{ .Values.psgvm.image.tag }}
+          imagePullPolicy: Always
           volumeMounts:
             - name: psql-storage
               mountPath: /var/lib/postgresql
@@ -156,6 +168,7 @@ spec:
 
         - name: gvmd
           image: greenbone/gvmd:stable
+          imagePullPolicy: Always
           volumeMounts:
             - name: gvmd-storage
               mountPath: /var/lib/gvm
@@ -200,6 +213,7 @@ spec:
 
         - name: gsa
           image: greenbone/gsa:stable
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
               protocol: TCP
@@ -223,6 +237,7 @@ spec:
 
         - name: openvasd
           image: greenbone/openvas-scanner:stable
+          imagePullPolicy: Always
           ports:
             - containerPort: 81
               protocol: TCP
@@ -247,6 +262,7 @@ spec:
 
         - name: ospd-openvas
           image: greenbone/ospd-openvas:stable
+          imagePullPolicy: Always
           securityContext:
             capabilities:
               add: ["NET_ADMIN", "NET_RAW"]
@@ -277,6 +293,7 @@ spec:
 
         - name: gvm-tools
           image: greenbone/gvm-tools
+          imagePullPolicy: Always
           volumeMounts:
             - name: gvmd-socket
               mountPath: /run/gvmd
