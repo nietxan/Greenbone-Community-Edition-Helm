@@ -261,7 +261,7 @@ spec:
             {{- toYaml .Values.podSecurityContext | nindent 12 }}
 
         - name: ospd-openvas
-          image: greenbone/ospd-openvas:stable
+          image: {{ .Values.ospd.image.repository }}:{{ .Values.ospd.image.tag }}
           imagePullPolicy: Always
           securityContext:
             capabilities:

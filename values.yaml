@@ -7,6 +7,10 @@ psgvm:
   image:
     repository: greenbone/pg-gvm
     tag: stable
+ospd:
+  image:
+    repository: greenbone/ospd-openvas
+    tag: edge
 
 #  4  Errors.
 #  8  Critical situation.
