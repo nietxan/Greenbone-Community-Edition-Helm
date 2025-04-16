@@ -41,7 +41,7 @@ I have setup four pv's which get shared across the different containers in the p
 For example, the following will not work
 ```
 - name: gvmd
-          image: greenbone/gvmd:stable
+          image: registry.community.greenbone.net/community/gvmd:stable
           volumeMounts:
             - name: shared-storage
               mountPath: /var/lib/gvm
