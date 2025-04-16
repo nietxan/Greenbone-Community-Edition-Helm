@@ -5,11 +5,11 @@ hostname: openvas.example.com
 
 psgvm:
   image:
-    repository: greenbone/pg-gvm
+    repository: registry.community.greenbone.net/community/pg-gvm
     tag: stable
 ospd:
   image:
-    repository: greenbone/ospd-openvas
+    repository: registry.community.greenbone.net/community/ospd-openvas
     tag: edge
 
 #  4  Errors.
@@ -27,7 +27,7 @@ ospdOpenvas:
       memory: 250Mi
 
 gvmd:
-# https://github.com/greenbone/docs/blob/main/src/22.4/container/workflows.md?plain=1#L336
+# https://github.com/registry.community.greenbone.net/community/docs/blob/main/src/22.4/container/workflows.md?plain=1#L336
 #  env:
 #    MTA_HOST: "smtp.gmail.com"
 #    MTA_PORT: 587
