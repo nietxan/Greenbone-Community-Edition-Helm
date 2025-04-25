@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  openvas:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2025-04-25T13:10:45.031631144+05:00"
+    description: A Helm chart for Kubernetes
+    digest: aac87f78b4ef0bc2d4acc34cd50c6cc60f45ad7927f1e27de63414dd503ce981
+    name: openvas
+    type: application
+    urls:
+    - https://nietxan.github.io/greenbone-community-edition-helm/charts/charts/openvas-1.0.0.tgz
+    version: 1.0.0
+generated: "2025-04-25T13:10:45.02821081+05:00"
