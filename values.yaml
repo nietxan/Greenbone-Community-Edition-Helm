@@ -73,8 +73,6 @@ securityContext:
 service:
   type: ClusterIP
 
-
-
 readinessProbe:
   # failureThreshold: 3
   # httpGet:
