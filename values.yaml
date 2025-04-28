@@ -54,7 +54,7 @@ namespaceOverride: ""
 
 persistence:
   enabled: true
-  storageClass: "default"
+  storageClass: ""
   accessMode: ReadWriteOnce
   size: 25Gi
 
