@@ -24,7 +24,9 @@ ospdOpenvas:
       memory: 250Mi
 
 gvmd:
-#  env:
+  env:
+    USER: "admin"
+#    PASSWORD: "<password>"
 #    MTA_HOST: "smtp.gmail.com"
 #    MTA_PORT: 587
 #    MTA_TLS: "on"
