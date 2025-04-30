@@ -215,7 +215,7 @@ spec:
           image: registry.community.greenbone.net/community/gsa:stable
           imagePullPolicy: Always
           ports:
-            - containerPort: 80
+            - containerPort: 9392
               protocol: TCP
           volumeMounts:
             - name: gvmd-socket
