@@ -7,14 +7,14 @@ metadata:
   labels:
     {{- include "openvas.labels" . | nindent 4 }}
 spec:
-  {{- if .Values.persistence.storageClass }}
-  storageClassName: {{ .Values.persistence.storageClass | quote }}
+  {{- if .Values.persistence.gvmd.storageClass }}
+  storageClassName: {{ .Values.persistence.gvmd.storageClass | quote }}
   {{- end }}
   accessModes:
-    - {{ .Values.persistence.accessMode | quote }}
+    - {{ .Values.persistence.gvmd.accessMode | quote }}
   resources:
     requests:
-      storage: {{ .Values.persistence.size | quote }}
+      storage: {{ .Values.persistence.gvmd.size | quote }}
 
 ---
 kind: PersistentVolumeClaim
@@ -25,14 +25,14 @@ metadata:
   labels:
     {{- include "openvas.labels" . | nindent 4 }}
 spec:
-  {{- if .Values.persistence.storageClass }}
-  storageClassName: {{ .Values.persistence.storageClass | quote }}
+  {{- if .Values.persistence.openvas.storageClass }}
+  storageClassName: {{ .Values.persistence.openvas.storageClass | quote }}
   {{- end }}
   accessModes:
-    - {{ .Values.persistence.accessMode | quote }}
+    - {{ .Values.persistence.openvas.accessMode | quote }}
   resources:
     requests:
-      storage: {{ .Values.persistence.size | quote }}
+      storage: {{ .Values.persistence.openvas.size | quote }}
 
 ---
 kind: PersistentVolumeClaim
@@ -43,11 +43,11 @@ metadata:
   labels:
     {{- include "openvas.labels" . | nindent 4 }}
 spec:
-  {{- if .Values.persistence.storageClass }}
-  storageClassName: {{ .Values.persistence.storageClass | quote }}
+  {{- if .Values.persistence.psql.storageClass }}
+  storageClassName: {{ .Values.persistence.psql.storageClass | quote }}
   {{- end }}
   accessModes:
-    - {{ .Values.persistence.accessMode | quote }}
+    - {{ .Values.persistence.psql.accessMode | quote }}
   resources:
     requests:
-      storage: {{ .Values.persistence.size | quote }}
+      storage: {{ .Values.persistence.psql.size | quote }}

@@ -53,10 +53,18 @@ nameOverride: ""
 namespaceOverride: ""
 
 persistence:
-  enabled: true
-  storageClass: "" # default
-  accessMode: ReadWriteOnce
-  size: 25Gi
+  gvmd:
+    storageClass: "" # default
+    accessMode: ReadWriteOnce
+    size: 20Gi
+  openvas:
+    storageClass: "" # default
+    accessMode: ReadWriteOnce
+    size: 5Gi
+  psql:
+    storageClass: "" # default
+    accessMode: ReadWriteOnce
+    size: 50Gi
 
 serviceAccount:
   create: true
