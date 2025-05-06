@@ -17,11 +17,68 @@ ospd:
 #128  Debug.  (Lots of output.)
 logLevel: 16
 
+gsa:
+  resources:
+    requests:
+      cpu: 200m
+      memory: 100Mi
+    limits:
+      cpu: 300m
+      memory: 200Mi
+
+gvmTools:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      cpu: 500m
+      memory: 150Mi
+
+openvas:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      cpu: 150m
+      memory: 150Mi
+
+openvasd:
+  resources:
+    requests:
+      cpu: 200m
+      memory: 200Mi
+    limits:
+      cpu: 1
+      memory: 500Mi
+
 ospdOpenvas:
   resources:
     requests:
-      cpu: 3
+      cpu: 200m
+      memory: 200Mi
+    limits:
+      cpu: 2
+      memory: 1Gi
+
+pgGvm:
+  resources:
+    requests:
+      cpu: 1
+      memory: 1Gi
+    limits:
+      cpu: 2
+      memory: 2Gi
+
+redisServer:
+  resources:
+    requests:
+      cpu: 200m
       memory: 250Mi
+    limits:
+      cpu: 1
+      memory: 500Mi
 
 gvmd:
   env:
@@ -35,6 +92,13 @@ gvmd:
 #    MTA_USER: "<username>"
 #    MTA_FROM: "<username>@gmail.com"
 #  existingSecret: "gvmd-secrets"
+  resources:
+    requests:
+      cpu: 200m
+      memory: 200Mi
+    limits:
+      cpu: 1
+      memory: 500Mi
 
 ingress:
   enabled: true 

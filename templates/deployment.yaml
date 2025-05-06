@@ -149,6 +149,10 @@ spec:
               subPath: redis-socket
           securityContext:
             {{- toYaml .Values.podSecurityContext | nindent 12 }}
+          {{- with .Values.redisServer.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
 
         - name: pg-gvm
           image: {{ .Values.psgvm.image.repository }}:{{ .Values.psgvm.image.tag }}
@@ -165,6 +169,10 @@ spec:
             postStart:
               exec:
                 command: ["/bin/sh", "-c", "chown -R postgres:postgres /var/lib/postgresql"]
+          {{- with .Values.pgGvm.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
 
         - name: gvmd
           image: registry.community.greenbone.net/community/gvmd:stable
@@ -210,6 +218,10 @@ spec:
             postStart:
               exec:
                 command: ["/bin/sh", "-c", "chown -R gvmd:gvmd /run/gvmd; mkdir -p /var/lib/gvm/gvmd; chown -R gvmd:gvmd /var/lib/gvm"]
+          {{- with .Values.gvmd.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
 
         - name: gsa
           image: registry.community.greenbone.net/community/gsa:stable
@@ -222,6 +234,10 @@ spec:
               mountPath: /run/gvmd
           securityContext:
             {{- toYaml .Values.podSecurityContext | nindent 12 }}
+          {{- with .Values.gsa.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
 
         - name: openvas
           image: registry.community.greenbone.net/community/openvas-scanner:stable
@@ -234,6 +250,10 @@ spec:
           command: ["/bin/sh", "-c", "cat /etc/openvas/openvas.conf && tail -f /var/log/openvas/openvas.log"]
           securityContext:
             {{- toYaml .Values.podSecurityContext | nindent 12 }}
+          {{- with .Values.openvas.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
 
         - name: openvasd
           image: registry.community.greenbone.net/community/openvas-scanner:stable
@@ -259,6 +279,10 @@ spec:
               subPath: notus-data
           securityContext:
             {{- toYaml .Values.podSecurityContext | nindent 12 }}
+          {{- with .Values.openvasd.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
 
         - name: ospd-openvas
           image: {{ .Values.ospd.image.repository }}:{{ .Values.ospd.image.tag }}
@@ -307,6 +331,10 @@ spec:
             - '-c'
           securityContext:
             {{- toYaml .Values.podSecurityContext | nindent 12 }}
+          {{- with .Values.gvmTools.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
 
       volumes:
         - name: shared-storage
