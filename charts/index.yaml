@@ -3,9 +3,9 @@ entries:
   openvas:
   - apiVersion: v2
     appVersion: "22.04"
-    created: "2025-05-15T18:34:04.282548421+05:00"
+    created: "2025-05-15T18:40:08.530423885+05:00"
     description: greenbone openvas
-    digest: 053c528554239a89c497a351c8d2c1a25468e1cf87ab24bd4fb9bfe3b488e579
+    digest: eb4d5470e531551b4ab7f20fe76ba582a09aaf47ae7032f2a434149f43c61283
     name: openvas
     type: application
     urls:
@@ -13,7 +13,7 @@ entries:
     version: 1.1.1
   - apiVersion: v2
     appVersion: "22.04"
-    created: "2025-05-15T18:34:04.28074799+05:00"
+    created: "2025-05-15T18:40:08.52903087+05:00"
     description: greenbone openvas
     digest: 8dbee6b7e666ce56144205b68eb86cd61482c75109b33605779cefa25920ad58
     name: openvas
@@ -23,7 +23,7 @@ entries:
     version: 1.1.0
   - apiVersion: v2
     appVersion: "22.04"
-    created: "2025-05-15T18:34:04.277372314+05:00"
+    created: "2025-05-15T18:40:08.526165634+05:00"
     description: greenbone openvas
     digest: 87414e5133196dfc74ce28723715fde1a86302bb2f1051881e26d4a0ae88dec2
     name: openvas
@@ -31,4 +31,4 @@ entries:
     urls:
     - https://nietxan.github.io/greenbone-community-edition-helm/charts/openvas-1.0.0.tgz
     version: 1.0.0
-generated: "2025-05-15T18:34:04.273408819+05:00"
+generated: "2025-05-15T18:40:08.523650997+05:00"
