@@ -125,8 +125,6 @@ spec:
           env:
             - name: STORAGE_PATH
               value: "/var/lib/openvas/22.04/vt-data/nasl"
-            - name: FEED_RELEASE
-              value: "22.04"
           volumeMounts:
             - name: shared-storage
               mountPath: /mnt
