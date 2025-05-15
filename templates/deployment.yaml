@@ -88,7 +88,7 @@ spec:
           imagePullPolicy: Always
           env:
             - name: FEED_RELEASE
-              value: "24.10"
+              value: "22.04"
           volumeMounts:
             - name: gvmd-storage
               mountPath: /mnt
@@ -101,7 +101,7 @@ spec:
           imagePullPolicy: Always
           env:
             - name: FEED_RELEASE
-              value: "24.10"
+              value: "22.04"
           volumeMounts:
             - name: gvmd-storage
               mountPath: /mnt
@@ -124,9 +124,9 @@ spec:
           imagePullPolicy: Always
           env:
             - name: STORAGE_PATH
-              value: "/var/lib/openvas/24.10/vt-data/nasl"
+              value: "/var/lib/openvas/22.04/vt-data/nasl"
             - name: FEED_RELEASE
-              value: "24.10"
+              value: "22.04"
           volumeMounts:
             - name: shared-storage
               mountPath: /mnt
