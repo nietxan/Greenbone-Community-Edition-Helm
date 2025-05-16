@@ -1,0 +1,67 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: openvas-maintenance-sa
+  namespace: {{ template "openvas.namespace" . }}
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: openvas-maintenance-role
+  namespace: {{ template "openvas.namespace" . }}
+  labels:
+    {{- include "openvas.labels" . | nindent 4 }}
+rules:
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["get", "list", "patch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: openvas-maintenance-rb
+  namespace: {{ template "openvas.namespace" . }}
+  labels:
+    {{- include "openvas.labels" . | nindent 4 }}
+subjects:
+- kind: ServiceAccount
+  name: openvas-maintenance-sa
+  namespace: {{ template "openvas.namespace" . }}
+  labels:
+    {{- include "openvas.labels" . | nindent 4 }}
+roleRef:
+  kind: Role
+  name: openvas-maintenance-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: openvas-maintenance-cronjob
+  namespace: {{ template "openvas.namespace" . }}
+  labels:
+    {{- include "openvas.labels" . | nindent 4 }}
+spec:
+  {{- if .Values.maintenance.schedule }}
+  schedule: {{ .Values.maintenance.schedule | quote }}
+  {{- end }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: openvas-maintenance-sa
+          restartPolicy: OnFailure
+          containers:
+          - name: kubectl-runner
+            image: bitnami/kubectl:latest
+            command:
+            - /bin/sh
+            - -c
+            - kubectl rollout restart deployment {{ include "openvas.fullname" . }} -n {{ template "openvas.namespace" . }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
