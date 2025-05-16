@@ -2,14 +2,16 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: openvas-maintenance-sa
+  name: openvas-maintenance
   namespace: {{ template "openvas.namespace" . }}
+  labels:
+    {{- include "openvas.labels" . | nindent 4 }}
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: openvas-maintenance-role
+  name: openvas-maintenance
   namespace: {{ template "openvas.namespace" . }}
   labels:
     {{- include "openvas.labels" . | nindent 4 }}
@@ -22,26 +24,24 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: openvas-maintenance-rb
+  name: openvas-maintenance
   namespace: {{ template "openvas.namespace" . }}
   labels:
     {{- include "openvas.labels" . | nindent 4 }}
 subjects:
 - kind: ServiceAccount
-  name: openvas-maintenance-sa
+  name: openvas-maintenance
   namespace: {{ template "openvas.namespace" . }}
-  labels:
-    {{- include "openvas.labels" . | nindent 4 }}
 roleRef:
   kind: Role
-  name: openvas-maintenance-role
+  name: openvas-maintenance
   apiGroup: rbac.authorization.k8s.io
 
 ---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: openvas-maintenance-cronjob
+  name: openvas-maintenance
   namespace: {{ template "openvas.namespace" . }}
   labels:
     {{- include "openvas.labels" . | nindent 4 }}
