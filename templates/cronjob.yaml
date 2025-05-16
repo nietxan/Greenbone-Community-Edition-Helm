@@ -48,6 +48,8 @@ metadata:
 spec:
   {{- if .Values.maintenance.schedule }}
   schedule: {{ .Values.maintenance.schedule | quote }}
+  {{- else}}
+  schedule: "0 18 * * 6"
   {{- end }}
   jobTemplate:
     spec:
