@@ -9,71 +9,111 @@ data:
   init-postgres.sh: |
     #!/bin/sh
 
+    echo "[INFO] Checking environment variables"
     [ -z "$POSTGRES_USER" ] && POSTGRES_USER="gvmd"
     [ -z "$POSTGRES_DATA" ] && POSTGRES_DATA="/var/lib/postgresql"
     [ -z "$POSTGRES_HOST_AUTH_METHOD" ] && POSTGRES_HOST_AUTH_METHOD="md5"
+    [ -z "$POSTGRES_VERSION" ] && POSTGRES_VERSION=13
 
     POSTGRES_DB=gvmd
-    POSTGRES_VERSION=13
     POSTGRES_HBA_CONF="/etc/postgresql/$POSTGRES_VERSION/main/pg_hba.conf"
     POSTGRES_SETUP_DIR="/mnt/postgresql/$POSTGRES_VERSION/main"
 
-    # Check if PostgreSQL is already set up
+    echo "[INFO] POSTGRES_USER=$POSTGRES_USER"
+    echo "[INFO] POSTGRES_DATA=$POSTGRES_DATA"
+    echo "[INFO] POSTGRES_HOST_AUTH_METHOD=$POSTGRES_HOST_AUTH_METHOD"
+    echo "[INFO] POSTGRES_DB=$POSTGRES_DB"
+    echo "[INFO] POSTGRES_VERSION=$POSTGRES_VERSION"
+    echo "[INFO] POSTGRES_HBA_CONF=$POSTGRES_HBA_CONF"
+    echo "[INFO] POSTGRES_SETUP_DIR=$POSTGRES_SETUP_DIR"
+
+    echo "[INFO] Checking if PostgreSQL is already set up"
     if [ -d "$POSTGRES_SETUP_DIR" ]; then
-        echo "PostgreSQL already set up at $POSTGRES_SETUP_DIR, skipping initialization."
+        echo "[INFO] PostgreSQL already set up at $POSTGRES_SETUP_DIR, skipping initialization."
         exit 0
     fi
 
+    echo "[INFO] Removing started file if present"
     rm -f "$POSTGRES_DATA/started"
 
+    echo "[INFO] Writing pg_hba.conf"
     echo "local all all trust" > $POSTGRES_HBA_CONF
 
     if [ "$POSTGRES_HOST_AUTH_METHOD" = "trust" ]; then
-        echo "# warning trust is enabled for all connections"
+        echo "[WARN] trust is enabled for all connections"
         echo "# see https://www.postgresql.org/docs/$POSTGRES_VERSION/auth-trust.html"
     fi
 
     echo "host all all all $POSTGRES_HOST_AUTH_METHOD" >> $POSTGRES_HBA_CONF
 
+    echo "[INFO] Starting PostgreSQL cluster"
     pg_ctlcluster -o "-k /tmp" -o "-c listen_addresses=''" $POSTGRES_VERSION main start
 
+    echo "[INFO] Checking if user $POSTGRES_USER exists"
     USER_EXISTS="$(echo "SELECT 1 FROM pg_roles WHERE rolname = '$POSTGRES_USER'" | psql --host=/tmp -U postgres -d postgres --tuples-only)"
     if [ -z "$USER_EXISTS" ]; then
+        echo "[INFO] Creating user $POSTGRES_USER"
         createuser --host=/tmp -U postgres -DRS "$POSTGRES_USER"
+    else
+        echo "[INFO] User $POSTGRES_USER already exists"
     fi
 
     if [ -n "$POSTGRES_PASSWORD" ]; then
+        echo "[INFO] Setting password for $POSTGRES_USER"
         echo "ALTER ROLE $POSTGRES_USER PASSWORD '$POSTGRES_PASSWORD';" | \
             psql --host=/tmp -U postgres -d postgres
     fi
 
+    echo "[INFO] Checking if database $POSTGRES_DB exists"
     DB_EXISTS="$(echo "SELECT 1 FROM pg_database WHERE datname = '$POSTGRES_DB';" | psql --host=/tmp -U postgres -d postgres --tuples-only)"
     if [ -z "$DB_EXISTS" ]; then
-        createdb --host=/tmp -U postgres -O "$POSTGRES_DB" "$POSTGRES_USER"
+        echo "[INFO] Creating database $POSTGRES_DB owned by $POSTGRES_USER"
+        createdb --host=/tmp -U postgres -O "$POSTGRES_USER" "$POSTGRES_DB"
+    else
+        echo "[INFO] Database $POSTGRES_DB already exists"
     fi
 
+    echo "[INFO] Checking if role dba exists"
     DBA_EXISTS="$(echo "SELECT 1 FROM pg_roles WHERE rolname = 'dba';" | psql --host=/tmp -U postgres -d $POSTGRES_DB --tuples-only)"
     if [ -z "$DBA_EXISTS" ]; then
+        echo "[INFO] Creating role dba and granting to $POSTGRES_USER"
         psql --host=/tmp -U postgres -d $POSTGRES_DB -c "create role dba with superuser noinherit;"
         psql --host=/tmp -U postgres -d $POSTGRES_DB -c "grant dba to $POSTGRES_USER;"
+    else
+        echo "[INFO] Role dba already exists"
     fi
 
+    echo "[INFO] Checking for extension uuid-ossp"
     UUID_OSSP_EXTENSION_EXISTS="$(echo "SELECT 1 FROM pg_extension WHERE extname = 'uuid-ossp';" | psql --host=/tmp -U postgres -d $POSTGRES_DB --tuples-only)"
     if [ -z "$UUID_OSSP_EXTENSION_EXISTS" ]; then
+        echo "[INFO] Creating extension uuid-ossp"
         psql --host=/tmp -U postgres -d $POSTGRES_DB -c 'create extension "uuid-ossp";'
+    else
+        echo "[INFO] Extension uuid-ossp already exists"
     fi
 
+    echo "[INFO] Checking for extension pgcrypto"
     PGCRYPTO_EXTENSION_EXISTS="$(echo "SELECT 1 FROM pg_extension WHERE extname = 'pgcrypto';" | psql --host=/tmp -U postgres -d $POSTGRES_DB --tuples-only)"
     if [ -z "$PGCRYPTO_EXTENSION_EXISTS" ]; then
+        echo "[INFO] Creating extension pgcrypto"
         psql --host=/tmp -U postgres -d $POSTGRES_DB -c 'create extension "pgcrypto";'
+    else
+        echo "[INFO] Extension pgcrypto already exists"
     fi
 
+    echo "[INFO] Checking for extension pg-gvm"
     PG_GVM_EXTENSION_EXISTS="$(echo "SELECT 1 FROM pg_extension WHERE extname = 'pg-gvm';" | psql --host=/tmp -U postgres -d $POSTGRES_DB --tuples-only)"
     if [ -z "$PG_GVM_EXTENSION_EXISTS" ]; then
+        echo "[INFO] Creating extension pg-gvm"
         psql --host=/tmp -U postgres -d $POSTGRES_DB -c 'create extension "pg-gvm";'
+    else
+        echo "[INFO] Extension pg-gvm already exists"
     fi
 
+    echo "[INFO] Stopping PostgreSQL cluster"
     pg_ctlcluster --foreground $POSTGRES_VERSION main stop
 
-    # Copy data to PersistentVolume
+    echo "[INFO] Copying data to PersistentVolume"
     cp -ra /var/lib/postgresql/* /mnt/postgresql/
+
+    echo "[INFO] PostgreSQL initialization complete"
